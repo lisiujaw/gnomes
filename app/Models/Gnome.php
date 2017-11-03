@@ -3,8 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Model;
 use App\Exceptions\GnomeException;
-use Illuminate\Database\Eloquent;
 
 /**
  * Gnome model
@@ -77,7 +77,7 @@ class Gnome extends Model
             throw new GnomeException('Gnome name lenght must be greather than 0 and less than 255');
         }
 
-        $this->name = $name
+        $this->name = $name;
 
         return $this;
     }
@@ -105,7 +105,7 @@ class Gnome extends Model
             throw new GnomeException('Gnome strength must be greather than or equal 0 and less than or equal 100');
         }
 
-        $this->strength = $strength
+        $this->strength = $strength;
 
         return $this;
     }
@@ -133,7 +133,7 @@ class Gnome extends Model
             throw new GnomeException('Gnome age must be greather than or equal 0 and less than or equal 100');
         }
 
-        $this->age = $age
+        $this->age = $age;
 
         return $this;
     }
@@ -156,7 +156,7 @@ class Gnome extends Model
      */
     public function setAvatarFileName(string $avatarFileName) : Gnome
     {
-        $this->avatar_file = $avatarFileName
+        $this->avatar_file = $avatarFileName;
 
         return $this;
     }
