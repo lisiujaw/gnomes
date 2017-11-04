@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Model;
 use App\Exceptions\GnomeException;
+use App\Scopes\UserScope;
 
 /**
  * Gnome model
@@ -21,6 +22,29 @@ class Gnome extends Model
      * @var string
      */
     protected $table = 'gnomes';
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array
+     */
+    protected $fillable = [
+        'name', 'strength', 'age', 'avatar_file',
+    ];
+
+    /**
+     * The "booting" method of the model.
+     * Added locale scope
+     *
+     * @return void
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        // add UserScope that will return values for active user only
+        static::addGlobalScope(new UserScope());
+    }
 
     /**
      * Return an inverse one-to-one or many relationship.
@@ -159,5 +183,15 @@ class Gnome extends Model
         $this->avatar_file = $avatarFileName;
 
         return $this;
+    }
+
+    /**
+     * Get the route key for the model.
+     *
+     * @return string
+     */
+    public function getRouteKeyName()
+    {
+        return 'id';
     }
 }

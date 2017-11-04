@@ -2,8 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Notifications\Notifiable;
 
 /**
  * User model
@@ -31,4 +32,24 @@ class User extends Authenticatable
     protected $hidden = [
         'password', 'remember_token',
     ];
+
+    /**
+     * Return a one-to-many relationship.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function gnomes()
+    {
+        return $this->hasMany(Gnome::class, 'user_id');
+    }
+
+    /**
+     * Return Collection of user gnomes
+     *
+     * @return Collection
+     */
+    public function getGnomes()
+    {
+        return $this->gnomes;
+    }
 }

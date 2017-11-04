@@ -8,7 +8,7 @@
     <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ config('app.name', 'Laravel') }}</title>
+    <title>{{ config('app.name', 'Gnome Portal') }}</title>
 
     <!-- Styles -->
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
@@ -28,8 +28,8 @@
                     </button>
 
                     <!-- Branding Image -->
-                    <a class="navbar-brand" href="{{ url('/') }}">
-                        {{ config('app.name', 'Laravel') }}
+                    <a class="navbar-brand" href="@if (Auth::user()) {{ route('home') }} @else {{ url('/') }} @endif">
+                        {{ config('app.name', 'Gnome Portal') }}
                     </a>
                 </div>
 
@@ -48,7 +48,7 @@
                         @else
                             <li class="dropdown">
                                 <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true">
-                                    {{ Auth::user()->name }} <span class="caret"></span>
+                                    {{ ucfirst(Auth::user()->name) }} <span class="caret"></span>
                                 </a>
 
                                 <ul class="dropdown-menu">
@@ -70,6 +70,20 @@
                 </div>
             </div>
         </nav>
+
+        <div class="col-md-6 col-md-offset-3">
+            @if (session('status'))
+                <div class="alert alert-info">
+                    {{ session('status') }}
+                </div>
+            @endif
+
+            @if ($errors->any())
+                <div class="alert alert-danger">
+                    {{ implode(' ', $errors->all(':message')) }}
+                </div>
+            @endif
+        </div>
 
         @yield('content')
     </div>
