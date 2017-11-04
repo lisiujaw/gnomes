@@ -16,7 +16,7 @@ class GnomeSeeder extends Seeder
         $user = User::where('name', 'devel')
             ->firstOrFail();
 
-        for ($i=0; $i <= 10 ; $i++) {
+        for ($i=1; $i <= 10 ; $i++) {
             $gnome = factory(Gnome::class)
                 ->make()
                 ->setUser($user)
