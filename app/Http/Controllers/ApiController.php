@@ -119,7 +119,13 @@ class ApiController extends Controller
         return ['status' => false];
     }
 
-
+    /**
+     * Edit gnome
+     *
+     * @param  Request $request
+     * @param  int     $gnomeId
+     * @return Gnome|array
+     */
     public function editGnome(Request $request, int $gnomeId)
     {
         $validation = Validator::make($request->all(), [
