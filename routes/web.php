@@ -11,10 +11,6 @@
 |
 */
 
-
-
-$router->model('category_url', 'App\CategoryTranslation');
-
 Route::get('/', function () {
     return view('welcome');
 });
@@ -25,13 +21,13 @@ Route::get('/home', 'HomeController@index')
     ->name('home');
 
 Route::get('/gnome/{gnome}', 'HomeController@view')
-    ->where('id', '^([0-9]+)')
+    ->where('gnome', '^([0-9]+)')
     ->name('gnome_view');
 
 Route::post('/gnome/{gnome}', 'HomeController@edit')
-    ->where('id', '^([0-9]+)')
+    ->where('gnome', '^([0-9]+)')
     ->name('gnome_edit');
 
 Route::get('/gnome/delete/{gnome}', 'HomeController@delete')
-    ->where('id', '^([0-9]+)')
+    ->where('gnome', '^([0-9]+)')
     ->name('gnome_delete');

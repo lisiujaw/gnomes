@@ -6,7 +6,6 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use App\Http\Requests\GnomeEditRequets;
 use Illuminate\Http\Request;
 use App\Models\Gnome;
-use Auth;
 use File;
 
 class HomeController extends Controller
@@ -28,7 +27,7 @@ class HomeController extends Controller
      */
     public function index(Request $request) : \Illuminate\View\View
     {
-        $gnomes = Auth::user()
+        $gnomes = $request->user()
             ->getGnomes();
 
         return view('home', [
@@ -74,7 +73,7 @@ class HomeController extends Controller
         if ($request->has('avatar')) {
             $file = $request->file('avatar');
             $extension = strtolower(File::extension($file->getClientOriginalName()));
-            $newFileName = sha1($gnome->id . rand().microtime()) . '.' . $extension;
+            $newFileName = sha1(rand().microtime()) . '.' . $extension;
 
             $saved = $file->storeAs(
                 '', $newFileName, ['disk' => 'avatars']

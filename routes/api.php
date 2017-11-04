@@ -13,6 +13,25 @@ use Illuminate\Http\Request;
 |
 */
 
-Route::middleware('auth:api')->get('/user', function (Request $request) {
-    return $request->user();
+Route::middleware(['auth.basic'])->group(function () {
+    Route::get('/user', 'ApiController@user')
+        ->name('api_user_data');
+
+    Route::get('/gnomes', 'ApiController@listGnomes')
+        ->name('api_gnome_list');
+
+    Route::get('/gnomes/{id}', 'ApiController@getGnome')
+        ->where('id', '^([0-9]+)')
+        ->name('api_gnome_get');
+
+    Route::put('/gnomes', 'ApiController@createGnome')
+        ->name('api_gnome_create');
+
+    Route::patch('/gnomes/{id}', 'ApiController@editGnome')
+        ->where('id', '^([0-9]+)')
+        ->name('api_gnome_edit');
+
+    Route::delete('/gnomes/{id}', 'ApiController@deleteGnome')
+        ->where('id', '^([0-9]+)')
+        ->name('api_gnome_delete');
 });

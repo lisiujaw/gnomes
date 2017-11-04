@@ -33,6 +33,15 @@ class Gnome extends Model
     ];
 
     /**
+     * The attributes that should be hidden for arrays.
+     *
+     * @var array
+     */
+    protected $hidden = [
+        'user_id', 'deleted_at',
+    ];
+
+    /**
      * The "booting" method of the model.
      * Added locale scope
      *
@@ -123,7 +132,7 @@ class Gnome extends Model
      * @return self
      * @throws GnomeException
      */
-    public function setStrength(integer $strength) : Gnome
+    public function setStrength(int $strength) : Gnome
     {
         if ($strength < 0 || $strength > 100) {
             throw new GnomeException('Gnome strength must be greather than or equal 0 and less than or equal 100');
@@ -151,7 +160,7 @@ class Gnome extends Model
      * @return self
      * @throws GnomeException
      */
-    public function setAge(integer $age) : Gnome
+    public function setAge(int $age) : Gnome
     {
         if ($age < 0 || $age > 100) {
             throw new GnomeException('Gnome age must be greather than or equal 0 and less than or equal 100');
