@@ -28,6 +28,13 @@ Route::post('/gnome/{gnome}', 'HomeController@edit')
     ->where('gnome', '^([0-9]+)')
     ->name('gnome_edit');
 
+Route::get('/gnome/create', function () {
+    return view('create');
+})->name('gnome_create');
+
+Route::post('/gnome/create', 'HomeController@create')
+    ->name('gnome_create_post');
+
 Route::get('/gnome/delete/{gnome}', 'HomeController@delete')
     ->where('gnome', '^([0-9]+)')
     ->name('gnome_delete');

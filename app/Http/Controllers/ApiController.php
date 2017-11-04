@@ -18,7 +18,7 @@ class ApiController extends Controller
      * @param  Request $request
      * @return User
      */
-    public function user(Request $request)
+    public function user(Request $request) : User
     {
         return $request->user();
     }
@@ -29,7 +29,7 @@ class ApiController extends Controller
      * @param  Request $request
      * @return Collection
      */
-    public function listGnomes(Request $request)
+    public function listGnomes(Request $request) : Collection
     {
         return $request->user()
             ->getGnomes();
@@ -40,11 +40,20 @@ class ApiController extends Controller
      *
      * @param  Request $request
      * @param  int     $gnomeId
-     * @return Gnome|null
+     * @return array
      */
-    public function getGnome(Request $request, int $gnomeId)
+    public function getGnome(Request $request, int $gnomeId) : array
     {
-        return Gnome::find($gnomeId) ?? ['status' => false];
+        $gnome = Gnome::find($gnomeId);
+
+        if ($gnome) {
+            return [
+                'status' => true,
+                'gnome' => $gnome,
+            ];
+        }
+
+        return ['status' => false];
     }
 
     /**
@@ -54,24 +63,24 @@ class ApiController extends Controller
      * @param  int     $gnomeId
      * @return array
      */
-    public function deleteGnome(Request $request, int $gnomeId)
+    public function deleteGnome(Request $request, int $gnomeId) : array
     {
         $gnome = Gnome::find($gnomeId);
 
         if ($gnome == null) {
-            return ['deleted' => false];
+            return ['status' => false];
         }
 
-        return ['deleted' => $gnome->delete()];
+        return ['status' => $gnome->delete()];
     }
 
     /**
      * Create new gnome
      *
      * @param  Request $request
-     * @return Gnome|array
+     * @return array
      */
-    public function createGnome(Request $request)
+    public function createGnome(Request $request) : array
     {
         $validation = Validator::make($request->all(), [
             'name'      => 'required|max:255',
@@ -112,7 +121,10 @@ class ApiController extends Controller
             $gnome->setUser($request->user());
 
             if ($gnome->save()) {
-                $gnome->makeHidden('user');
+                return [
+                    'status' => true,
+                    'gnome' => $gnome->makeHidden('user')
+                ];
             }
         }
 
@@ -124,9 +136,9 @@ class ApiController extends Controller
      *
      * @param  Request $request
      * @param  int     $gnomeId
-     * @return Gnome|array
+     * @return array
      */
-    public function editGnome(Request $request, int $gnomeId)
+    public function editGnome(Request $request, int $gnomeId) : array
     {
         $validation = Validator::make($request->all(), [
             'name'      => 'max:255',
@@ -181,7 +193,10 @@ class ApiController extends Controller
         }
 
         if ($gnome->save()) {
-            return $gnome->makeHidden('user');
+            return [
+                'status' => true,
+                'gnome' => $gnome->makeHidden('user')
+            ];
         }
 
         return ['status' => false];

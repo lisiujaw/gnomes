@@ -38,7 +38,7 @@ class Gnome extends Model
      * @var array
      */
     protected $hidden = [
-        'user_id', 'deleted_at',
+        'user_id', 'deleted_at', 'created_at', 'updated_at',
     ];
 
     /**

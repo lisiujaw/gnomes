@@ -8,7 +8,7 @@
                 <div class="panel-heading">Dashboard</div>
 
                 <div class="panel-body">
-                    <h2>Yours gnomes</h2>
+                    <h2>Yours gnomes <a href="{{ route('gnome_create') }}"><span class="label label-success">Create NEW</span></a></h2>
 
                     @if (count($gnomes))
                         @foreach ($gnomes as $gnome)

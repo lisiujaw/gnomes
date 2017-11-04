@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use App\Http\Requests\GnomeCreateRequets;
 use App\Http\Requests\GnomeEditRequets;
 use Illuminate\Http\Request;
 use App\Models\Gnome;
@@ -49,6 +50,44 @@ class HomeController extends Controller
         return view('edit', [
             'gnome' => $gnome,
         ]);
+    }
+
+    /**
+     * Create new gnome
+     *
+     * @param  GnomeCreateRequets $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function create(GnomeCreateRequets $request) : \Illuminate\Http\RedirectResponse
+    {
+        $gnome = new Gnome([
+            'name' => $request->input('name'),
+            'strength' => $request->input('strength'),
+            'age' => $request->input('age'),
+        ]);
+
+        $file = $request->file('avatar');
+        $extension = strtolower(File::extension($file->getClientOriginalName()));
+        $fileName = sha1(rand().microtime()) . '.' . $extension;
+
+        $fileSaved = $file->storeAs(
+            '', $fileName, ['disk' => 'avatars']
+        );
+
+        if (! $fileSaved) {
+            throw new \Exception('Can not save avatar file');
+        }
+
+        $gnome->setAvatarFileName($fileName);
+        $gnome->setUser($request->user());
+
+        if ($gnome->save()) {
+            $request->session()->flash('status', 'Your new gnome was saved!');
+
+            return redirect(route('gnome_edit', $gnome));
+        }
+
+        return redirect(route('gnome_create'));
     }
 
     /**
