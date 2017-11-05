@@ -83,7 +83,7 @@
                 </div>
 
                 <div class="links">
-                    <a href="https://laravel.com/docs">Documentation</a>
+                    <a href="https://github.com/lisiujaw/gnomes/blob/master/README.md">Documentation</a>
                 </div>
             </div>
         </div>
