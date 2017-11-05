@@ -10,7 +10,7 @@ Manage your virtual gnomes.
 6. You\`r ready to manage gnomes! Have fun!
 
 ## Requirements
-* PHP7
+* PHP7.1
 * MySQL
 * Installed PHP GD Library
 
