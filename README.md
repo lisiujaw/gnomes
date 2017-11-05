@@ -3,11 +3,11 @@ Manage your virtual gnomes.
 
 ## Instalation
 1. git clone :)
-2. ```composer install```
+2. Run ```composer install```
 3. Copy .env.example file to .env and modify it
 4. Run ```php artisan key:generate```
 5. Run ```php artisan migrate --seed```
-6. You`r ready to manage gnomes! Have fun!
+6. You\`r ready to manage gnomes! Have fun!
 
 ## Requirements
 * PHP7
