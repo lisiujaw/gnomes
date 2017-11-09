@@ -4,6 +4,7 @@ namespace App\Services;
 
 use Illuminate\Database\Eloquent\Collection;
 use App\Exceptions\GnomeException;
+use App\Exceptions\GnomeNotFound;
 use Illuminate\Http\UploadedFile;
 use App\Models\Gnome;
 use App\Models\User;
@@ -44,7 +45,7 @@ class GnomeService
         try {
             return Gnome::findOrFail($id);
         } catch (\Exception $e) {
-            throw new \Exception('Can not find gnome');
+            throw new GnomeNotFound('Can not find gnome');
         }
     }
 

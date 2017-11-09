@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Database\Eloquent\Collection;
+use App\Exceptions\GnomeNotFound;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Models\Gnome;
 use App\Models\User;
@@ -16,23 +18,24 @@ class ApiController extends Controller
      * Return logged User model
      *
      * @param  Request $request
-     * @return User
+     * @return JsonResponse
      */
-    public function user(Request $request) : User
+    public function user(Request $request) : JsonResponse
     {
-        return $request->user();
+        return $this->response($request->user()->toArray(), 200);
     }
 
     /**
      * Return Collection of gnomes
      *
      * @param  Request $request
-     * @return Collection
+     * @return JsonResponse
      */
-    public function listGnomes(Request $request) : Collection
+    public function listGnomes(Request $request) : JsonResponse
     {
-        return app('GnomeService')
-            ->getUserGnomes($request->user());
+        return $this->response(
+            app('GnomeService')->getUserGnomes($request->user())->toArray()
+        , 200);
     }
 
     /**
@@ -40,19 +43,21 @@ class ApiController extends Controller
      *
      * @param  Request $request
      * @param  int     $gnomeId
-     * @return array
+     * @return JsonResponse
      */
-    public function getGnome(Request $request, int $gnomeId) : array
+    public function getGnome(Request $request, int $gnomeId) : JsonResponse
     {
         try {
-            return [
-                'status' => true,
-                'gnome' => app('GnomeService')->getGnomeById($gnomeId),
-            ];
+            return $this->response(
+                [
+                    'status' => true,
+                    'gnome' => app('GnomeService')->getGnomeById($gnomeId),
+                ], 200
+            );
         } catch (\Exception $e) {
-            return [
+            return $this->response([
                 'status' => false,
-            ];
+            ], 404);
         }
     }
 
@@ -61,16 +66,23 @@ class ApiController extends Controller
      *
      * @param  Request $request
      * @param  int     $gnomeId
-     * @return array
+     * @return JsonResponse
      */
-    public function deleteGnome(Request $request, int $gnomeId) : array
+    public function deleteGnome(Request $request, int $gnomeId) : JsonResponse
     {
         try {
-            return [
+            return $this->response([
                 'status' => app('GnomeService')->deleteGnomeById($gnomeId)
-            ];
+            ], 200);
+        } catch (GnomeNotFound $e) {
+            return $this->response([
+                'status' => false,
+                'error' => $e->getMessage(),
+            ], 404);
         } catch (\Exception $e) {
-            return ['status' => false];
+            return $this->response([
+                'status' => false,
+            ], 500);
         }
     }
 
@@ -78,9 +90,9 @@ class ApiController extends Controller
      * Create new gnome
      *
      * @param  Request $request
-     * @return array
+     * @return JsonResponse
      */
-    public function createGnome(Request $request) : array
+    public function createGnome(Request $request) : JsonResponse
     {
         $validation = Validator::make($request->all(), [
             'name'      => 'required|max:255',
@@ -90,11 +102,11 @@ class ApiController extends Controller
         ]);
 
         if ($validation->fails()) {
-            return [
+            return $this->response([
                 'status' => false,
                 'error' => 'Validation error',
-                'validation_errors' => $validation->errors()->messages()
-            ];
+                'validation_errors' => $validation->errors()->messages(),
+            ], 500);
         }
 
         try {
@@ -107,23 +119,23 @@ class ApiController extends Controller
                 $request->user()
             );
         } catch (\Exception $e) {
-            return [
+            return $this->response([
                 'status' => false,
                 'error' => $e->getMessage(),
-            ];
+            ], 500);
         }
 
         if (is_a($gnome, Gnome::class)) {
-            return [
+            return $this->response([
                 'status' => true,
                 'gnome' => $gnome,
-            ];
+            ], 200);
         }
 
-        return [
+        return $this->response([
             'status' => false,
             'error' => 'Can not create gnome',
-        ];
+        ], 500);
     }
 
     /**
@@ -131,9 +143,9 @@ class ApiController extends Controller
      *
      * @param  Request $request
      * @param  int     $gnomeId
-     * @return array
+     * @return JsonResponse
      */
-    public function editGnome(Request $request, int $gnomeId) : array
+    public function editGnome(Request $request, int $gnomeId) : JsonResponse
     {
         $validation = Validator::make($request->all(), [
             'name'      => 'max:255',
@@ -143,11 +155,11 @@ class ApiController extends Controller
         ]);
 
         if ($validation->fails()) {
-            return [
+            return $this->response([
                 'status' => false,
                 'error' => 'Validation error',
-                'validation_errors' => $validation->errors()->messages()
-            ];
+                'validation_errors' => $validation->errors()->messages(),
+            ], 500);
         }
 
         $gnomeData = $request->all();
@@ -159,23 +171,41 @@ class ApiController extends Controller
                 $gnomeData,
                 $request->has('avatar') ? $request->input('avatar') : null
             );
-        } catch (\Exception $e) {
-            return [
+        } catch (GnomeNotFound $e) {
+            return $this->response([
                 'status' => false,
                 'error' => $e->getMessage(),
-            ];
+            ], 404);
+        } catch (\Exception $e) {
+            return $this->response([
+                'status' => false,
+                'error' => $e->getMessage(),
+            ], 500);
         }
 
         if ($updated) {
-            return [
+            return $this->response([
                 'status' => true,
-                'gnome' => app('GnomeService')->getGnomeById($gnomeId)
-            ];
+                'gnome' => app('GnomeService')->getGnomeById($gnomeId),
+            ], 200);
         }
 
-        return [
+        return $this->response([
             'status' => false,
             'error' => 'Can not update gnome',
-        ];
+        ], 500);
+    }
+
+    /**
+     * Prepare JsonResponse object
+     *
+     * @param  array $data
+     * @param  int   $status
+     * @return JsonResponse
+     */
+    private function response(array $data, int $status = 200) : JsonResponse
+    {
+        return response()
+            ->json($data, $status);
     }
 }
