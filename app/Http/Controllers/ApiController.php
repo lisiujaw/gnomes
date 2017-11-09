@@ -48,12 +48,10 @@ class ApiController extends Controller
     public function getGnome(Request $request, int $gnomeId) : JsonResponse
     {
         try {
-            return $this->response(
-                [
-                    'status' => true,
-                    'gnome' => app('GnomeService')->getGnomeById($gnomeId),
-                ], 200
-            );
+            return $this->response([
+                'status' => true,
+                'gnome' => app('GnomeService')->getGnomeById($gnomeId),
+            ], 200);
         } catch (\Exception $e) {
             return $this->response([
                 'status' => false,
@@ -74,15 +72,10 @@ class ApiController extends Controller
             return $this->response([
                 'status' => app('GnomeService')->deleteGnomeById($gnomeId)
             ], 200);
-        } catch (GnomeNotFound $e) {
-            return $this->response([
-                'status' => false,
-                'error' => $e->getMessage(),
-            ], 404);
         } catch (\Exception $e) {
             return $this->response([
                 'status' => false,
-            ], 500);
+            ], is_a($e, GnomeNotFound::class) ? 404 : 500);
         }
     }
 
@@ -171,16 +164,11 @@ class ApiController extends Controller
                 $gnomeData,
                 $request->has('avatar') ? $request->input('avatar') : null
             );
-        } catch (GnomeNotFound $e) {
-            return $this->response([
-                'status' => false,
-                'error' => $e->getMessage(),
-            ], 404);
         } catch (\Exception $e) {
             return $this->response([
                 'status' => false,
                 'error' => $e->getMessage(),
-            ], 500);
+            ], is_a($e, GnomeNotFound::class) ? 404 : 500);
         }
 
         if ($updated) {
