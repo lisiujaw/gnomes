@@ -28,8 +28,8 @@ class HomeController extends Controller
      */
     public function index(Request $request) : \Illuminate\View\View
     {
-        $gnomes = $request->user()
-            ->getGnomes();
+        $gnomes = app('GnomeService')
+            ->getUserGnomes();
 
         return view('home', [
             'gnomes' => $gnomes,
@@ -60,34 +60,26 @@ class HomeController extends Controller
      */
     public function create(GnomeCreateRequets $request) : \Illuminate\Http\RedirectResponse
     {
-        $gnome = new Gnome([
-            'name' => $request->input('name'),
-            'strength' => $request->input('strength'),
-            'age' => $request->input('age'),
-        ]);
+        try {
+            $gnome = app('GnomeService')->createGnome(
+                [
+                    'name' => $request->input('name'),
+                    'strength' => $request->input('strength'),
+                    'age' => $request->input('age'),
+                ],
+                $request->file('avatar')
+            );
+        } catch (\Exception $e) {
+            $request->session()
+                ->flash('status', 'Can not create gnome! ' . $e->getMessage());
 
-        $file = $request->file('avatar');
-        $extension = strtolower(File::extension($file->getClientOriginalName()));
-        $fileName = sha1(rand().microtime()) . '.' . $extension;
-
-        $fileSaved = $file->storeAs(
-            '', $fileName, ['disk' => 'avatars']
-        );
-
-        if (! $fileSaved) {
-            throw new \Exception('Can not save avatar file');
+            return redirect(route('gnome_create'));
         }
 
-        $gnome->setAvatarFileName($fileName);
-        $gnome->setUser($request->user());
+        $request->session()
+            ->flash('status', 'Your new gnome was saved!');
 
-        if ($gnome->save()) {
-            $request->session()->flash('status', 'Your new gnome was saved!');
-
-            return redirect(route('gnome_edit', $gnome));
-        }
-
-        return redirect(route('gnome_create'));
+        return redirect(route('gnome_edit', $gnome));
     }
 
     /**
@@ -109,21 +101,18 @@ class HomeController extends Controller
             'age' => $request->input('age'),
         ];
 
-        if ($request->has('avatar')) {
-            $file = $request->file('avatar');
-            $extension = strtolower(File::extension($file->getClientOriginalName()));
-            $newFileName = sha1(rand().microtime()) . '.' . $extension;
-
-            $saved = $file->storeAs(
-                '', $newFileName, ['disk' => 'avatars']
+        try {
+            $updated = app('GnomeService')->updateGnome(
+                $gnome,
+                $gnomeData,
+                $request->has('avatar') ? $request->file('avatar') : null
             );
+        } catch (\Exception $e) {
+            $request->session()
+                ->flash('status', 'Can not edit gnome! ' . $e->getMessage());
 
-            if ($saved) {
-                $gnomeData['avatar_file'] = $newFileName;
-            }
+            return redirect(route('home'));
         }
-
-        $updated = $gnome->update($gnomeData);
 
         $request->session()->flash(
             'status',
@@ -148,9 +137,12 @@ class HomeController extends Controller
             throw new NotFoundHttpException('Gnome not found!');
         }
 
+        $deleted = app('GnomeService')
+            ->deleteGnome($gnome);
+
         $request->session()->flash(
             'status',
-            $gnome->delete()
+            $deleted
                 ? 'Gnome was deleted!'
                 : 'Gnome was NOT deleted!'
         );

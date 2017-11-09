@@ -31,8 +31,8 @@ class ApiController extends Controller
      */
     public function listGnomes(Request $request) : Collection
     {
-        return $request->user()
-            ->getGnomes();
+        return app('GnomeService')
+            ->getUserGnomes($request->user());
     }
 
     /**
@@ -44,16 +44,16 @@ class ApiController extends Controller
      */
     public function getGnome(Request $request, int $gnomeId) : array
     {
-        $gnome = Gnome::find($gnomeId);
-
-        if ($gnome) {
+        try {
             return [
                 'status' => true,
-                'gnome' => $gnome,
+                'gnome' => app('GnomeService')->getGnomeById($gnomeId),
+            ];
+        } catch (\Exception $e) {
+            return [
+                'status' => false,
             ];
         }
-
-        return ['status' => false];
     }
 
     /**
@@ -65,13 +65,13 @@ class ApiController extends Controller
      */
     public function deleteGnome(Request $request, int $gnomeId) : array
     {
-        $gnome = Gnome::find($gnomeId);
-
-        if ($gnome == null) {
+        try {
+            return [
+                'status' => app('GnomeService')->deleteGnomeById($gnomeId)
+            ];
+        } catch (\Exception $e) {
             return ['status' => false];
         }
-
-        return ['status' => $gnome->delete()];
     }
 
     /**
@@ -90,45 +90,40 @@ class ApiController extends Controller
         ]);
 
         if ($validation->fails()) {
-            $errors = $validation->errors()->messages();
-
-            return ['status' => false, 'errors' => $errors];
-        }
-
-        try {
-            $image = Image::make($request->input('avatar'))
-                ->encode('jpg', 100);
-        } catch (\Exception $e) {
             return [
                 'status' => false,
-                'errors' => [
-                    'avatar' => [$e->getMessage()]
-                ]
+                'error' => 'Validation error',
+                'validation_errors' => $validation->errors()->messages()
             ];
         }
 
-        $imageFileName = sha1(rand().microtime()) . '.jpg';
-        $fileSaved = Storage::disk('avatars')->put($imageFileName, $image);
-
-        if ($fileSaved) {
-            $gnome = new Gnome([
-                'name' => $request->input('name'),
-                'strength' => $request->input('strength'),
-                'age' => $request->input('age'),
-                'avatar_file' => $imageFileName,
-            ]);
-
-            $gnome->setUser($request->user());
-
-            if ($gnome->save()) {
-                return [
-                    'status' => true,
-                    'gnome' => $gnome->makeHidden('user')
-                ];
-            }
+        try {
+            $gnome = app('GnomeService')->createGnome([
+                    'name' => $request->input('name'),
+                    'strength' => $request->input('strength'),
+                    'age' => $request->input('age'),
+                ],
+                $request->input('avatar'),
+                $request->user()
+            );
+        } catch (\Exception $e) {
+            return [
+                'status' => false,
+                'error' => $e->getMessage(),
+            ];
         }
 
-        return ['status' => false];
+        if (is_a($gnome, Gnome::class)) {
+            return [
+                'status' => true,
+                'gnome' => $gnome,
+            ];
+        }
+
+        return [
+            'status' => false,
+            'error' => 'Can not create gnome',
+        ];
     }
 
     /**
@@ -148,57 +143,39 @@ class ApiController extends Controller
         ]);
 
         if ($validation->fails()) {
-            $errors = $validation->errors()->messages();
-
-            return ['status' => false, 'errors' => $errors];
-        }
-
-        $gnome = Gnome::find($gnomeId);
-
-        if ($gnome == null) {
-            return ['status' => false];
-        }
-
-        if ($request->has('name')) {
-            $gnome->setName($request->input('name'));
-        }
-
-        if ($request->has('age')) {
-            $gnome->setAge($request->input('age'));
-        }
-
-        if ($request->has('strength')) {
-            $gnome->setStrength($request->input('strength'));
-        }
-
-        if ($request->has('avatar')) {
-            try {
-                $image = Image::make($request->input('avatar'))
-                    ->encode('jpg', 100);
-            } catch (\Exception $e) {
-                return [
-                    'status' => false,
-                    'errors' => [
-                        'avatar' => [$e->getMessage()]
-                    ]
-                ];
-            }
-
-            $imageFileName = sha1(rand().microtime()) . '.jpg';
-            $fileSaved = Storage::disk('avatars')->put($imageFileName, $image);
-
-            if ($fileSaved) {
-                $gnome->setAvatarFileName($imageFileName);
-            }
-        }
-
-        if ($gnome->save()) {
             return [
-                'status' => true,
-                'gnome' => $gnome->makeHidden('user')
+                'status' => false,
+                'error' => 'Validation error',
+                'validation_errors' => $validation->errors()->messages()
             ];
         }
 
-        return ['status' => false];
+        $gnomeData = $request->all();
+        unset($gnomeData['avatar']);
+
+        try {
+            $updated = app('GnomeService')->updateGnomeById(
+                $gnomeId,
+                $gnomeData,
+                $request->has('avatar') ? $request->input('avatar') : null
+            );
+        } catch (\Exception $e) {
+            return [
+                'status' => false,
+                'error' => $e->getMessage(),
+            ];
+        }
+
+        if ($updated) {
+            return [
+                'status' => true,
+                'gnome' => app('GnomeService')->getGnomeById($gnomeId)
+            ];
+        }
+
+        return [
+            'status' => false,
+            'error' => 'Can not update gnome',
+        ];
     }
 }

@@ -57,3 +57,4 @@ Basic (use user credentials)
 ### Headers
 * Authorization : Basic ZGV2ZWw6ZGV2ZWw= (devel/devel)
 * Content-Type : application/json
+* Accept : application/json
